@@ -118,7 +118,7 @@
                             <line x1="3" y1="12" x2="3.01" y2="12"></line>
                             <line x1="3" y1="18" x2="3.01" y2="18"></line>
                         </svg>
-                        <span>Meus Agendamentos</span>
+                        <span>Agendamentos</span>
                         <span id="badge-count" class="ml-1 px-1.5 py-0.2 text-[11px] font-bold rounded-full bg-white/20 text-white">0</span>
                     </button>
                 </nav>
@@ -169,7 +169,7 @@
             <!-- ------------------------------------------------------------- -->
             <div id="step-1-container" class="w-full max-w-[560px] bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 fade-in">
                 <h1 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                    O que você precisa agendar?
+                    Qual o tipo de operação?
                 </h1>
                 <p class="text-sm text-slate-500 mt-1.5 mb-6">
                     Escolha o setor e a operação para ver as datas e horários disponíveis.
@@ -320,10 +320,11 @@
                                 <label for="select-veiculo" class="block text-sm font-medium text-slate-700 mb-1">Tipo de Veículo *</label>
                                 <select id="select-veiculo" required
                                     class="w-full border border-slate-300 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-3.5 py-2.5 text-sm bg-white outline-none">
-                                    <option value="Carreta">Carreta</option>
                                     <option value="Truck">Truck</option>
+                                    <option value="Carreta">Carreta</option>
                                     <option value="Bitrem / Rodotrem">Bitrem / Rodotrem</option>
-                                    <option value="VUC / 3/4">VUC / 3/4</option>
+                                    <option value="VUC ou 3/4">VUC ou 3/4</option>
+                                    <option value="Van">Van</option>
                                     <option value="Utilitário">Utilitário</option>
                                 </select>
                             </div>
@@ -344,7 +345,7 @@
 
                             <!-- Nota Fiscal / Pedido -->
                             <div class="sm:col-span-2 lg:col-span-3">
-                                <label for="input-nf" class="block text-sm font-medium text-slate-700 mb-1">Número da Nota Fiscal / Pedido / Ordem *</label>
+                                <label for="input-nf" class="block text-sm font-medium text-slate-700 mb-1">Número da Nota Fiscal / Pedido / Ordem de Coleta *</label>
                                 <input type="text" id="input-nf" required placeholder="Ex: NF 104592 / Pedido 8841"
                                     class="w-full border border-slate-300 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-3.5 py-2.5 text-sm outline-none">
                             </div>
