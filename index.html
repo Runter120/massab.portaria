@@ -85,7 +85,7 @@
                     </div>
                     <div class="flex flex-col leading-none">
                         <span class="font-extrabold tracking-wider text-base sm:text-lg text-white">MCASSAB</span>
-                        <span class="text-[9px] tracking-[0.2em] text-emerald-100 uppercase font-medium mt-0.5">AREA DE &amp; TESTES</span>
+                        <span class="text-[9px] tracking-[0.2em] text-emerald-100 uppercase font-medium mt-0.5">Logística &amp; Portaria</span>
                     </div>
                 </div>
 
@@ -183,11 +183,11 @@
                     <div class="relative">
                         <select id="select-setor" 
                             class="w-full appearance-none bg-white border border-slate-300 hover:border-slate-400 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-4 py-3.5 text-sm font-medium text-slate-800 outline-none transition-all cursor-pointer">
-                            <option value="INDÚSTRIA">INDÚSTRIA</option>
-                            <option value="ARMAZÉM GERAL / CD">ARMAZÉM GERAL / CD</option>
-                            <option value="EXPEDIÇÃO">EXPEDIÇÃO</option>
-                            <option value="RECEBIMENTO DE MATÉRIA-PRIMA">RECEBIMENTO DE MATÉRIA-PRIMA</option>
-                            <option value="QUÍMICOS E INSUMOS">QUÍMICOS E INSUMOS</option>
+                            <option value="FIGUEIRA">FIGUEIRA</option>
+                            <option value="FARMA/NUTROR">FARMA/NUTROR</option>
+                            <option value="ARAUCARIA">ARAUCARIA</option>
+                            <option value="IPÊ">IPÊ</option>
+                            <option value="CUPUAÇU">CUPUAÇU</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
@@ -252,7 +252,7 @@
                     </button>
 
                     <div class="flex items-center space-x-2 text-xs sm:text-sm">
-                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold" id="summary-setor">INDÚSTRIA</span>
+                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold" id="summary-setor">FIGUEIRA</span>
                         <span class="px-3 py-1 rounded-full bg-[#ecfdf5] text-[#047857] font-semibold" id="summary-operacao">Carregar</span>
                     </div>
                 </div>
@@ -557,7 +557,7 @@
 
         var HORARIOS_PADRAO = [
             '07:00', '08:00', '09:30', '11:00',
-            '13:30', '15:00', '16:30', '18:00'
+            '13:30', '15:00', '16:30'
         ];
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -579,7 +579,7 @@
                     agendamentos = [
                         {
                             id: 'MC-2026-8492',
-                            setor: 'INDÚSTRIA',
+                            setor: 'FIGUEIRA',
                             operacao: 'Carregar',
                             data: hoje,
                             horario: '09:30',
@@ -595,7 +595,7 @@
                         },
                         {
                             id: 'MC-2026-8510',
-                            setor: 'RECEBIMENTO DE MATÉRIA-PRIMA',
+                            setor: 'CUPUAÇU',
                             operacao: 'Descarregar',
                             data: amanha,
                             horario: '13:30',
