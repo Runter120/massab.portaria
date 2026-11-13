@@ -92,6 +92,10 @@
                 class="w-full bg-[#2a6118] hover:bg-[#33751d] text-white py-3 rounded-md text-base transition-colors">
                 Motorista
             </button>
+            <button type="button" onclick="voltarInicio()"
+            class="w-full text-sm text-slate-500 hover:text-[#047857] py-1 transition-colors">
+                ← Voltar
+            </button>
         </div>
     </div>
 </div>
@@ -155,7 +159,7 @@
 
             <!-- Direita: Botão Sair -->
             <div>
-                <button type="button" onclick="openLogoutModal()" 
+                <button type="button" onclick="voltarInicio()" 
                     class="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -994,7 +998,7 @@
             modal.classList.add('flex');
         }
 
-        function openLogoutModal() {
+        function voltarInicio() {
             var modal = document.getElementById('modal-login');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -1005,6 +1009,27 @@
             closeModal('modal-login');
             showToast('Sessão iniciada no portal MCASSAB.');
         }
+
+        function escolherPerfil(perfil) {
+    closeModal('tela-inicial');
+
+    if (perfil === 'operador') {
+        // Operador: vai para login e senha
+        voltarInicio();
+    } else {
+        // Motorista: vai direto para o agendamento
+        closeModal('modal-login');
+        switchTab('agendar');
+        goToStep(1);
+    }
+}
+
+function voltarInicio() {
+    closeModal('modal-login');
+    var tela = document.getElementById('tela-inicial');
+    tela.classList.remove('hidden');
+    tela.classList.add('flex');
+}
 
         function closeModal(modalId) {
             var modal = document.getElementById(modalId);
