@@ -67,6 +67,35 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
+    <!-- TELA INICIAL: ESCOLHA DE PERFIL -->
+<div id="tela-inicial" class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+     style="background: linear-gradient(135deg, #4aab2f 0%, #2e9e3a 50%, #00a04a 100%);">
+    <div class="w-full max-w-[460px] bg-[#1b1c1f] px-8 py-10 shadow-2xl fade-in">
+
+        <!-- Logo -->
+        <div class="flex items-center justify-center space-x-3 mb-8 select-none">
+            <span class="text-5xl font-bold tracking-tight text-[#555a5f]">MCassab</span>
+            <svg class="w-14 h-14" viewBox="0 0 64 64" fill="none" stroke-width="5">
+                <ellipse cx="24" cy="32" rx="12" ry="22" stroke="#6ab42d" transform="rotate(20 24 32)"/>
+                <ellipse cx="40" cy="32" rx="12" ry="22" stroke="#00a37a" transform="rotate(20 40 32)"/>
+            </svg>
+        </div>
+
+        <h2 class="text-center text-xl font-bold text-[#c9bfb0] mb-6">Login</h2>
+
+        <div class="space-y-4">
+            <button type="button" onclick="escolherPerfil('operador')"
+                class="w-full bg-[#2a6118] hover:bg-[#33751d] text-white py-3 rounded-md text-base transition-colors">
+                Operador
+            </button>
+            <button type="button" onclick="escolherPerfil('motorista')"
+                class="w-full bg-[#2a6118] hover:bg-[#33751d] text-white py-3 rounded-md text-base transition-colors">
+                Motorista
+            </button>
+        </div>
+    </div>
+</div>
+    
     <!-- ===================================================================== -->
     <!-- CABEÇALHO SUPERIOR (NAVBAR)                                           -->
     <!-- ===================================================================== -->
@@ -508,7 +537,7 @@
     <!-- ===================================================================== -->
     <!-- MODAL / TELA DE SAIR (LOGIN SIMULADO MCASSAB)                         -->
     <!-- ===================================================================== -->
-    <div id="modal-login" class="fixed inset-0 bg-[#eef1f6] flex items-center justify-center p-4 z-50">
+    <div id="modal-login" class="fixed inset-0 bg-[#eef1f6] hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full shadow-lg border border-slate-200 overflow-hidden fade-in">
             <div class="bg-[#047857] px-6 py-6 text-center text-white">
                 <div class="w-12 h-12 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center mx-auto mb-3">
