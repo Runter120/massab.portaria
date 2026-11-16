@@ -1006,6 +1006,12 @@
             modal.classList.add('flex');
         }
 
+        function loginOperador() {
+            var modal = document.getElementById('tela-inicial');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        
         function handleLogin(e) {
             e.preventDefault();
             closeModal('modal-login');
@@ -1017,7 +1023,7 @@
 
     if (perfil === 'operador') {
         // Operador: vai para login e senha
-        voltarInicio();
+        loginOperador();
     } else {
         // Motorista: vai direto para o agendamento
         closeModal('modal-login');
@@ -1027,7 +1033,7 @@
 }
 
 function voltarInicio() {
-    closeModal('modal-login');
+    closeModal('');
     var tela = document.getElementById('tela-inicial');
     tela.classList.remove('hidden');
     tela.classList.add('flex');
