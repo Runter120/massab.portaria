@@ -203,6 +203,16 @@
                         <span>Agendamentos</span>
                         <span id="badge-count" class="ml-1 px-1.5 py-0.2 text-[11px] font-bold rounded-full bg-white/20 text-white">0</span>
                     </button>
+
+                    <button id="nav-monitoramento" type="button" onclick="switchTab('monitoramento')" style="display:none" 
+                        class="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-emerald-100 hover:bg-white/10 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Monitoramento</span>
+                        <span id="badge-mon" class="ml-1 px-1.5 py-0.2 text-[11px] font-bold rounded-full bg-white/20 text-white">0</span>
+                    </button>
                 </nav>
             </div>
 
@@ -520,6 +530,117 @@
             </div>
         </section>
 
+        <!-- ================================================================= -->
+        <!-- VISÃO 3: ABA MONITORAMENTO                                        -->
+        <!-- ================================================================= -->
+        <section id="view-monitoramento" class="hidden fade-in">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Monitoramento</h1>
+                    <p class="text-sm text-slate-500 mt-0.5">Acompanhe dispositivos, fluxos, documentação e jornadas dos veículos na portaria.</p>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <button type="button" onclick="renderMonitoramento(); showToast('Monitoramento atualizado.')"
+                        class="inline-flex items-center space-x-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.5 15A8 8 0 0018.4 17M18.5 9A8 8 0 005.6 7" />
+                        </svg>
+                        <span>Atualizar</span>
+                    </button>
+                    <button type="button" onclick="exportMonitoramentoCSV()"
+                        class="inline-flex items-center space-x-2 bg-[#047857] hover:bg-[#065f46] text-white font-medium text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Exportar CSV</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cartões de resumo (clicáveis = filtro) -->
+            <div id="mon-cards" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5"></div>
+
+            <!-- Barra de filtros -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-5 grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-4">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Monitoramento</label>
+                    <div class="relative">
+                        <select id="mon-filtro-status" onchange="setMonFiltro(this.value)"
+                            class="w-full appearance-none bg-white border border-slate-300 hover:border-slate-400 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium text-slate-800 outline-none cursor-pointer">
+                            <option value="TODOS">Todos os monitoramentos</option>
+                            <option value="DISPOSITIVO_ASSOCIADO">Dispositivo associado</option>
+                            <option value="RECUPERAR_DISPOSITIVO">Recuperar dispositivo</option>
+                            <option value="FLUXO_DEFINIDO">Fluxo definido</option>
+                            <option value="DOC_VALIDADA">Documentação validada</option>
+                            <option value="DOC_INVALIDADA">Documentação invalidada</option>
+                            <option value="JORNADA_REPROVADA">Jornada reprovada</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Setor</label>
+                    <div class="relative">
+                        <select id="mon-filtro-setor" onchange="monPagina = 1; renderMonitoramento()"
+                            class="w-full appearance-none bg-white border border-slate-300 hover:border-slate-400 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium text-slate-800 outline-none cursor-pointer">
+                            <option value="">Todos os setores</option>
+                            <option value="FIGUEIRA">FIGUEIRA</option>
+                            <option value="FARMA/NUTROR">FARMA/NUTROR</option>
+                            <option value="ARAUCARIA">ARAUCARIA</option>
+                            <option value="IPÊ">IPÊ</option>
+                            <option value="CUPUAÇU">CUPUAÇU</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-5">
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Buscar</label>
+                    <div class="relative">
+                        <input type="text" id="mon-busca" oninput="monPagina = 1; renderMonitoramento()"
+                            placeholder="Protocolo, placa, motorista ou dispositivo..."
+                            class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 outline-none">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">Protocolo</th>
+                                <th class="px-4 py-3 font-semibold">Motorista / Placa</th>
+                                <th class="px-4 py-3 font-semibold">Setor / Operação</th>
+                                <th class="px-4 py-3 font-semibold">Janela</th>
+                                <th class="px-4 py-3 font-semibold">Dispositivo</th>
+                                <th class="px-4 py-3 font-semibold">Monitoramento</th>
+                                <th class="px-4 py-3 font-semibold">Atualizado</th>
+                                <th class="px-4 py-3 font-semibold text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mon-tbody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 bg-slate-50/60 text-xs text-slate-500">
+                    <span id="mon-resumo"></span>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" id="mon-prev" onclick="monMudarPagina(-1)" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 font-medium text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">Anterior</button>
+                        <span id="mon-pagina" class="font-semibold text-slate-700"></span>
+                        <button type="button" id="mon-next" onclick="monMudarPagina(1)" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 font-medium text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">Próxima</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- ===================================================================== -->
@@ -564,6 +685,32 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- MODAL DE SUCESSO DO AGENDAMENTO (MOTORISTA)                           -->
+    <!-- ===================================================================== -->
+    <div id="modal-sucesso" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-7 shadow-xl border border-slate-200 fade-in text-center">
+            <div class="w-14 h-14 rounded-full bg-emerald-50 text-[#047857] flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-800 uppercase tracking-wide">Seu agendamento foi concluído com sucesso</h3>
+            <p class="text-sm text-slate-500 mt-2">
+                Acompanhe na tela de <strong class="text-slate-700">Agendamentos</strong>.
+            </p>
+            <p class="text-xs text-slate-400 mt-3">Protocolo: <strong id="sucesso-protocolo" class="text-[#047857]"></strong></p>
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button type="button" onclick="closeModal('modal-sucesso')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50">
+                    Fechar
+                </button>
+                <button type="button" onclick="irParaAgendamentos()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#047857] hover:bg-[#065f46] text-white text-sm font-semibold">
+                    Ir para Agendamentos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- MODAL DE CONFIRMAÇÃO DE CANCELAMENTO                                  -->
     <!-- ===================================================================== -->
     <div id="modal-cancelar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
@@ -589,6 +736,29 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- MODAL DE DETALHE DO MONITORAMENTO                                     -->
+    <!-- ===================================================================== -->
+    <div id="modal-monitoramento" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-slate-200 overflow-hidden fade-in">
+            <div class="bg-[#047857] text-white px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <span class="font-extrabold tracking-wider text-base">MCASSAB</span>
+                    <span class="text-white/40">|</span>
+                    <span class="text-sm font-medium text-emerald-100">Detalhe do Monitoramento</span>
+                </div>
+                <button type="button" onclick="closeModal('modal-monitoramento')" class="text-white/80 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="mon-modal-body" class="p-6 space-y-4 text-sm"></div>
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeModal('modal-monitoramento')" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm">Fechar</button>
+                <button type="button" onclick="salvarMonitoramento()" class="px-5 py-2 rounded-xl bg-[#047857] hover:bg-[#065f46] text-white font-medium text-sm">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- LÓGICA DA APLICAÇÃO (JAVASCRIPT PURO)                                 -->
     <!-- ===================================================================== -->
     <script>
@@ -597,13 +767,44 @@
         var selectedHorario = '';
         var currentFilterStatus = 'TODOS';
         var agendamentos = [];
+        var perfilAtual = null; // 'operador' | 'motorista' | null
+        var motoristaAtual = null; // { nome, cpf } do motorista que acabou de agendar (só perfil Motorista)
 
-        // Cada horário tem um limite de vagas (por data + setor)
-        var VAGAS_POR_HORARIO = 3;
-        var HORARIOS_PADRAO = [
-            '07:00', '08:00', '09:30', '11:00',
-            '13:30', '15:00', '16:30'
-        ];
+        function normNome(v) {
+            return String(v || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+        }
+
+        // Operador vê tudo. Motorista vê somente os agendamentos do motorista que acabou de agendar.
+        function agendamentosVisiveis() {
+            if (perfilAtual === 'motorista') {
+                if (!motoristaAtual) return [];
+                return agendamentos.filter(function (a) {
+                    return normNome(a.motorista) === normNome(motoristaAtual.nome) &&
+                           String(a.cpf || '').trim() === String(motoristaAtual.cpf || '').trim();
+                });
+            }
+            return agendamentos;
+        }
+
+        // Monitoramento só existe para o perfil Operador
+        function aplicarPerfil(perfil) {
+            perfilAtual = perfil;
+            motoristaAtual = null; // trocar de perfil/sessão limpa a identificação do motorista
+            var nav = document.getElementById('nav-monitoramento');
+            if (nav) nav.style.display = (perfil === 'operador') ? 'flex' : 'none';
+            updateBadgeCount();
+            renderAgendamentos();
+        }
+
+        function irParaAgendamentos() {
+            closeModal('modal-sucesso');
+            switchTab('meus');
+        }
+
+        var HORARIOS_PADRAO = ['06:00', '08:00', '10:00', '12:00', '14:00'];
+        // Vagas por horário (por data + setor)
+        var VAGAS_HORARIO = { '06:00': 3, '08:00': 4, '10:00': 3, '12:00': 3, '14:00': 3 };
+        function vagasDoHorario(hora) { return VAGAS_HORARIO[hora] || 0; }
 
         document.addEventListener('DOMContentLoaded', function () {
             loadAgendamentos();
@@ -627,7 +828,7 @@
                             setor: 'FIGUEIRA',
                             operacao: 'Carregar',
                             data: hoje,
-                            horario: '09:30',
+                            horario: '10:00',
                             motorista: 'Marcos Antônio Oliveira',
                             cpf: '348.912.450-11',
                             transportadora: 'TransLog Express Ltda',
@@ -643,7 +844,7 @@
                             setor: 'CUPUAÇU',
                             operacao: 'Descarregar',
                             data: amanha,
-                            horario: '13:30',
+                            horario: '14:00',
                             motorista: 'Roberto Carlos Mendes',
                             cpf: '219.874.630-05',
                             transportadora: 'RodoCargo Brasil',
@@ -673,7 +874,7 @@
         }
 
         function updateBadgeCount() {
-            var ativos = agendamentos.filter(function (a) {
+            var ativos = agendamentosVisiveis().filter(function (a) {
                 return a.status === 'CONFIRMADO';
             }).length;
             var badge = document.getElementById('badge-count');
@@ -683,23 +884,18 @@
         }
 
         function switchTab(tab) {
-            var viewAgendar = document.getElementById('view-agendar');
-            var viewMeus = document.getElementById('view-meus');
-            var navAgendar = document.getElementById('nav-agendar');
-            var navMeus = document.getElementById('nav-meus');
-
-            if (tab === 'agendar') {
-                viewAgendar.classList.remove('hidden');
-                viewMeus.classList.add('hidden');
-                navAgendar.className = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-[#065f46] text-white shadow-inner';
-                navMeus.className = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-emerald-100 hover:bg-white/10 hover:text-white';
-            } else {
-                viewAgendar.classList.add('hidden');
-                viewMeus.classList.remove('hidden');
-                navMeus.className = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-[#065f46] text-white shadow-inner';
-                navAgendar.className = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-emerald-100 hover:bg-white/10 hover:text-white';
-                renderAgendamentos();
-            }
+            if (tab === 'monitoramento' && perfilAtual !== 'operador') tab = 'agendar';
+            var tabs = ['agendar', 'meus', 'monitoramento'];
+            var on = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors bg-[#065f46] text-white shadow-inner';
+            var off = 'flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-emerald-100 hover:bg-white/10 hover:text-white';
+            tabs.forEach(function (t) {
+                var view = document.getElementById('view-' + t);
+                var nav = document.getElementById('nav-' + t);
+                if (t === tab) { view.classList.remove('hidden'); nav.className = on; }
+                else { view.classList.add('hidden'); nav.className = off; }
+            });
+            if (tab === 'meus') renderAgendamentos();
+            if (tab === 'monitoramento') renderMonitoramento();
         }
 
         function selectOperacao(op) {
@@ -775,17 +971,22 @@
             var ocupacao = contarOcupacao(dataSelecionada, setorSelecionado);
 
             // Se o horário escolhido lotou, limpa a seleção
-            if ((ocupacao[selectedHorario] || 0) >= VAGAS_POR_HORARIO) {
+            if ((ocupacao[selectedHorario] || 0) >= vagasDoHorario(selectedHorario)) {
                 selectedHorario = '';
                 document.getElementById('input-horario').value = '';
             }
 
             var contador = document.getElementById('vagas-contador');
-            contador.textContent = VAGAS_POR_HORARIO + ' vagas por horário';
+            var totalVagas = 0, totalLivres = 0;
+            HORARIOS_PADRAO.forEach(function (h) {
+                totalVagas += vagasDoHorario(h);
+                totalLivres += Math.max(0, vagasDoHorario(h) - (ocupacao[h] || 0));
+            });
+            contador.textContent = totalLivres + ' de ' + totalVagas + ' vagas livres neste dia e setor';
             contador.className = 'text-xs font-semibold mb-2 text-slate-500';
 
             grid.innerHTML = HORARIOS_PADRAO.map(function (hora) {
-                var livres = VAGAS_POR_HORARIO - (ocupacao[hora] || 0);
+                var livres = vagasDoHorario(hora) - (ocupacao[hora] || 0);
                 var isSelected = selectedHorario === hora;
 
                 if (livres <= 0) {
@@ -823,7 +1024,7 @@
             var dataConf = document.getElementById('input-data').value;
             var setorConf = document.getElementById('select-setor').value;
             var ocupadas = contarOcupacao(dataConf, setorConf)[selectedHorario] || 0;
-            if (ocupadas >= VAGAS_POR_HORARIO) {
+            if (ocupadas >= vagasDoHorario(selectedHorario)) {
                 showToast('Este horário está lotado. Escolha outro.');
                 renderHorariosDisponiveis();
                 return;
@@ -857,9 +1058,20 @@
             selectOperacao('');
             goToStep(1);
 
-            switchTab('meus');
-            showToast('Agendamento confirmado com sucesso!');
-            openComprovante(novoAgendamento.id);
+            if (perfilAtual === 'motorista') {
+                // Motorista passa a ver apenas o que ele mesmo agendou
+                motoristaAtual = { nome: novoAgendamento.motorista, cpf: novoAgendamento.cpf };
+                updateBadgeCount();
+                renderAgendamentos();
+                document.getElementById('sucesso-protocolo').textContent = novoAgendamento.id;
+                var ms = document.getElementById('modal-sucesso');
+                ms.classList.remove('hidden');
+                ms.classList.add('flex');
+            } else {
+                switchTab('meus');
+                showToast('Agendamento confirmado com sucesso!');
+                openComprovante(novoAgendamento.id);
+            }
         }
 
         function setFilterStatus(status) {
@@ -882,7 +1094,7 @@
             var container = document.getElementById('agendamentos-list');
             var termo = document.getElementById('search-agendamentos').value.toLowerCase().trim();
 
-            var filtrados = agendamentos.filter(function (item) {
+            var filtrados = agendamentosVisiveis().filter(function (item) {
                 var matchStatus = (currentFilterStatus === 'TODOS') || (item.status === currentFilterStatus);
                 var matchTexto = !termo ||
                     item.id.toLowerCase().indexOf(termo) !== -1 ||
@@ -905,7 +1117,7 @@
                             '</svg>' +
                         '</div>' +
                         '<h3 class="text-base font-semibold text-slate-700">Nenhum agendamento encontrado</h3>' +
-                        '<p class="text-sm text-slate-500 mt-1">Tente limpar os filtros ou crie um novo agendamento de portaria.</p>' +
+                        '<p class="text-sm text-slate-500 mt-1">' + (perfilAtual === 'motorista' && !motoristaAtual ? 'Realize um agendamento para acompanhá-lo aqui.' : 'Tente limpar os filtros ou crie um novo agendamento de portaria.') + '</p>' +
                     '</div>';
                 return;
             }
@@ -1047,6 +1259,13 @@
         function handleLogin(e) {
             e.preventDefault();
             closeModal('modal-login');
+            try {
+                aplicarPerfil('operador');
+                switchTab('monitoramento');
+            } catch (err) {
+                console.error('Erro ao abrir o monitoramento:', err);
+                switchTab('agendar');
+            }
             showToast('Sessão iniciada no portal MCASSAB.');
         }
 
@@ -1055,16 +1274,21 @@
 
     if (perfil === 'operador') {
         // Operador: vai para login e senha
+        aplicarPerfil('operador');
         loginOperador();
     } else {
         // Motorista: vai direto para o agendamento
         closeModal('modal-login');
+        aplicarPerfil('motorista');
         switchTab('agendar');
         goToStep(1);
     }
 }
 
 function voltarInicio() {
+    aplicarPerfil(null);
+    closeModal('modal-sucesso');
+    switchTab('agendar');
     closeModal('tela-inicial');
     var tela = document.getElementById('tela-inicial');
     tela.classList.remove('hidden');
@@ -1078,7 +1302,8 @@ function voltarInicio() {
         }
 
         function exportCSV() {
-            if (agendamentos.length === 0) {
+            var lista = agendamentosVisiveis();
+            if (lista.length === 0) {
                 showToast('Não há agendamentos para exportar.');
                 return;
             }
@@ -1088,7 +1313,7 @@ function voltarInicio() {
                 'Motorista', 'CPF', 'Transportadora', 'Veiculo', 'Placa Cavalo', 'Placa Carreta', 'Nota Fiscal'
             ];
 
-            var rows = agendamentos.map(function (a) {
+            var rows = lista.map(function (a) {
                 return [
                     a.id,
                     a.status,
@@ -1138,6 +1363,249 @@ function voltarInicio() {
             }
             input.value = v;
         }
+
+        // =================================================================
+        // MONITORAMENTO
+        // =================================================================
+        var MON_KEY = 'mcassab_portaria_monitoramento_v2';
+        var MON_POR_PAGINA = 8;
+        var monitoramentos = [];
+        var monFiltro = 'TODOS';
+        var monPagina = 1;
+        var monEditId = null;
+
+        var MON_STATUS = {
+            DISPOSITIVO_ASSOCIADO: { label: 'Dispositivo associado', badge: 'bg-sky-50 text-sky-700 border-sky-200',         dot: 'bg-sky-500',     card: 'text-sky-700' },
+            RECUPERAR_DISPOSITIVO: { label: 'Recuperar dispositivo',  badge: 'bg-amber-50 text-amber-700 border-amber-200',   dot: 'bg-amber-500',   card: 'text-amber-700' },
+            FLUXO_DEFINIDO:        { label: 'Fluxo definido',         badge: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500',  card: 'text-violet-700' },
+            DOC_VALIDADA:          { label: 'Documentação validada',  badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', card: 'text-emerald-700' },
+            DOC_INVALIDADA:        { label: 'Documentação invalidada', badge: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500',  card: 'text-orange-700' },
+            JORNADA_REPROVADA:     { label: 'Jornada reprovada',      badge: 'bg-red-50 text-red-700 border-red-200',         dot: 'bg-red-500',     card: 'text-red-700' }
+        };
+        var MON_ORDEM = ['DISPOSITIVO_ASSOCIADO', 'RECUPERAR_DISPOSITIVO', 'FLUXO_DEFINIDO', 'DOC_VALIDADA', 'DOC_INVALIDADA', 'JORNADA_REPROVADA'];
+
+        function escHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function monAgora(minAtras) {
+            return new Date(Date.now() - minAtras * 60000).toISOString();
+        }
+
+        function monFormatarData(iso) {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function loadMonitoramento() {
+            try {
+                var saved = localStorage.getItem(MON_KEY);
+                if (saved) { monitoramentos = JSON.parse(saved); return; }
+            } catch (e) { console.error('Erro ao ler monitoramento:', e); }
+
+            var hoje = new Date().toISOString().split('T')[0];
+            //        id, motorista, placa, transportadora, setor, operacao, horario, dispositivo, status, minutos atrás, obs
+            var seed = [
+                ['MC-2026-8492', 'Marcos Antônio Oliveira', 'FGH-4J21', 'TransLog Express Ltda', 'FIGUEIRA', 'Carregar', '10:00', 'TRK-0231', 'DISPOSITIVO_ASSOCIADO', 6, ''],
+                ['MC-2026-8510', 'Roberto Carlos Mendes', 'RTY-7B19', 'RodoCargo Brasil', 'CUPUAÇU', 'Descarregar', '14:00', '—', 'FLUXO_DEFINIDO', 14, 'Doca 04 definida.'],
+                ['MC-2026-8523', 'Luciana Prado Ferreira', 'BRA-2E19', 'Prado Transportes', 'ARAUCARIA', 'Carregar', '06:00', 'TRK-0114', 'DOC_VALIDADA', 22, 'NF e CNH conferidas.'],
+                ['MC-2026-8527', 'José Ricardo Alves', 'QPD-5F83', 'Alves & Filhos Logística', 'IPÊ', 'Descarregar', '08:00', 'TRK-0087', 'RECUPERAR_DISPOSITIVO', 35, 'Veículo saiu sem devolver o dispositivo.'],
+                ['MC-2026-8531', 'Anderson Silva Rocha', 'LMN-3C47', 'RodoNorte Cargas', 'FARMA/NUTROR', 'Carregar', '12:00', '—', 'DOC_INVALIDADA', 41, 'CNH vencida.'],
+                ['MC-2026-8536', 'Paulo Henrique Souza', 'XYZ-8D02', 'TransLog Express Ltda', 'FIGUEIRA', 'Descarregar', '10:00', 'TRK-0302', 'JORNADA_REPROVADA', 55, 'Tempo de direção acima do permitido.'],
+                ['MC-2026-8540', 'Carlos Eduardo Lima', 'HJK-1A56', 'Lima Express', 'CUPUAÇU', 'Carregar', '14:00', 'TRK-0150', 'DISPOSITIVO_ASSOCIADO', 63, ''],
+                ['MC-2026-8544', 'Fernanda Costa Dias', 'TUV-6G90', 'Costa Dias Transportes', 'ARAUCARIA', 'Descarregar', '14:00', '—', 'FLUXO_DEFINIDO', 78, 'Fluxo: portaria → balança → doca 02.'],
+                ['MC-2026-8549', 'Ricardo Gomes Neto', 'DEF-9H31', 'GN Logística', 'IPÊ', 'Carregar', '14:00', 'TRK-0066', 'DOC_VALIDADA', 90, ''],
+                ['MC-2026-8553', 'Marcelo Batista Reis', 'MNO-4J77', 'Reis Cargas Pesadas', 'FARMA/NUTROR', 'Descarregar', '06:00', 'TRK-0199', 'RECUPERAR_DISPOSITIVO', 120, 'Dispositivo não localizado no pátio.'],
+                ['MC-2026-8558', 'Tiago Moreira Pinto', 'PQR-2K64', 'Pinto & Moreira', 'FIGUEIRA', 'Carregar', '08:00', '—', 'DOC_INVALIDADA', 150, 'NF divergente do pedido.'],
+                ['MC-2026-8562', 'Sandra Regina Lopes', 'STU-7L08', 'Lopes Transportes', 'CUPUAÇU', 'Descarregar', '12:00', 'TRK-0245', 'JORNADA_REPROVADA', 180, 'Descanso mínimo não cumprido.']
+            ];
+
+            monitoramentos = seed.map(function (r) {
+                return {
+                    id: r[0], motorista: r[1], placa: r[2], transportadora: r[3], setor: r[4], operacao: r[5],
+                    data: hoje, horario: r[6], dispositivo: r[7], status: r[8], atualizadoEm: monAgora(r[9]), obs: r[10]
+                };
+            });
+            saveMonitoramento();
+        }
+
+        function saveMonitoramento() {
+            try { localStorage.setItem(MON_KEY, JSON.stringify(monitoramentos)); }
+            catch (e) { console.error('Erro ao salvar monitoramento:', e); }
+        }
+
+        function monFiltrarBase() {
+            var setor = document.getElementById('mon-filtro-setor').value;
+            var termo = document.getElementById('mon-busca').value.toLowerCase().trim();
+            return monitoramentos.filter(function (m) {
+                var okSetor = !setor || m.setor === setor;
+                var okTexto = !termo ||
+                    m.id.toLowerCase().indexOf(termo) !== -1 ||
+                    m.motorista.toLowerCase().indexOf(termo) !== -1 ||
+                    m.placa.toLowerCase().indexOf(termo) !== -1 ||
+                    m.dispositivo.toLowerCase().indexOf(termo) !== -1;
+                return okSetor && okTexto;
+            });
+        }
+
+        function setMonFiltro(valor) {
+            monFiltro = valor;
+            monPagina = 1;
+            document.getElementById('mon-filtro-status').value = valor;
+            renderMonitoramento();
+        }
+
+        function monMudarPagina(delta) {
+            monPagina += delta;
+            renderMonitoramento();
+        }
+
+        function monBadge(status) {
+            var s = MON_STATUS[status];
+            return '<span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ' + s.badge + '">' +
+                '<span class="w-1.5 h-1.5 rounded-full ' + s.dot + '"></span><span>' + s.label + '</span></span>';
+        }
+
+        function renderMonitoramento() {
+            var base = monFiltrarBase();
+
+            // Cartões de contagem (respeitam setor e busca)
+            var cards = '';
+            MON_ORDEM.forEach(function (k) {
+                var qtd = base.filter(function (m) { return m.status === k; }).length;
+                var ativo = monFiltro === k;
+                cards +=
+                    '<button type="button" onclick="setMonFiltro(\'' + (ativo ? 'TODOS' : k) + '\')" class="text-left bg-white rounded-2xl border p-4 transition-all hover:border-slate-300 ' +
+                        (ativo ? 'border-[#047857] ring-2 ring-[#047857]/15' : 'border-slate-200/80') + ' shadow-sm">' +
+                        '<div class="flex items-center space-x-1.5 mb-2"><span class="w-2 h-2 rounded-full ' + MON_STATUS[k].dot + '"></span>' +
+                        '<span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide leading-tight">' + MON_STATUS[k].label + '</span></div>' +
+                        '<span class="text-2xl font-extrabold ' + MON_STATUS[k].card + '">' + qtd + '</span>' +
+                    '</button>';
+            });
+            document.getElementById('mon-cards').innerHTML = cards;
+
+            var lista = base.filter(function (m) { return monFiltro === 'TODOS' || m.status === monFiltro; });
+            lista.sort(function (a, b) { return b.atualizadoEm < a.atualizadoEm ? -1 : 1; });
+
+            var total = lista.length;
+            var paginas = Math.max(1, Math.ceil(total / MON_POR_PAGINA));
+            if (monPagina > paginas) monPagina = paginas;
+            if (monPagina < 1) monPagina = 1;
+            var ini = (monPagina - 1) * MON_POR_PAGINA;
+            var pagina = lista.slice(ini, ini + MON_POR_PAGINA);
+
+            var tbody = document.getElementById('mon-tbody');
+            if (pagina.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-12 text-center text-slate-500">' +
+                    '<div class="font-semibold text-slate-700">Nenhum registro encontrado</div>' +
+                    '<div class="text-xs mt-1">Ajuste o filtro de monitoramento, o setor ou a busca.</div></td></tr>';
+            } else {
+                tbody.innerHTML = pagina.map(function (m) {
+                    return '<tr class="hover:bg-slate-50/70 transition-colors">' +
+                        '<td class="px-4 py-3"><span class="font-bold text-xs text-[#047857] bg-[#ecfdf5] px-2 py-0.5 rounded-md whitespace-nowrap">' + escHtml(m.id) + '</span></td>' +
+                        '<td class="px-4 py-3"><div class="font-medium text-slate-800">' + escHtml(m.motorista) + '</div><div class="text-xs font-bold text-slate-500">' + escHtml(m.placa) + '</div></td>' +
+                        '<td class="px-4 py-3"><div class="font-medium text-slate-800">' + escHtml(m.setor) + '</div><div class="text-xs text-slate-500">' + escHtml(m.operacao) + '</div></td>' +
+                        '<td class="px-4 py-3 whitespace-nowrap"><div class="font-medium text-slate-800">' + formatDataBR(m.data) + '</div><div class="text-xs text-slate-500">' + escHtml(m.horario) + '</div></td>' +
+                        '<td class="px-4 py-3 font-mono text-xs text-slate-700">' + escHtml(m.dispositivo) + '</td>' +
+                        '<td class="px-4 py-3">' + monBadge(m.status) + '</td>' +
+                        '<td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">' + monFormatarData(m.atualizadoEm) + '</td>' +
+                        '<td class="px-4 py-3 text-right"><button type="button" onclick="abrirMonitoramento(\'' + m.id + '\')" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors">Detalhes</button></td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            document.getElementById('mon-resumo').textContent = total === 0
+                ? 'Nenhum registro'
+                : 'Mostrando ' + (ini + 1) + '–' + (ini + pagina.length) + ' de ' + total + ' registro(s)';
+            document.getElementById('mon-pagina').textContent = monPagina + ' / ' + paginas;
+            document.getElementById('mon-prev').disabled = monPagina <= 1;
+            document.getElementById('mon-next').disabled = monPagina >= paginas;
+
+            var alertas = monitoramentos.filter(function (m) {
+                return m.status === 'RECUPERAR_DISPOSITIVO' || m.status === 'DOC_INVALIDADA' || m.status === 'JORNADA_REPROVADA';
+            }).length;
+            var badge = document.getElementById('badge-mon');
+            if (badge) badge.textContent = alertas;
+        }
+
+        function abrirMonitoramento(id) {
+            var m = monitoramentos.find(function (x) { return x.id === id; });
+            if (!m) return;
+            monEditId = id;
+
+            var opcoes = MON_ORDEM.map(function (k) {
+                return '<option value="' + k + '"' + (k === m.status ? ' selected' : '') + '>' + MON_STATUS[k].label + '</option>';
+            }).join('');
+
+            document.getElementById('mon-modal-body').innerHTML =
+                '<div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">' +
+                    '<div><span class="text-xs text-slate-500 block">Protocolo</span><span class="text-lg font-extrabold text-[#047857] tracking-wide">' + escHtml(m.id) + '</span></div>' +
+                    '<div class="text-right">' + monBadge(m.status) + '</div>' +
+                '</div>' +
+                '<div class="grid grid-cols-2 gap-3">' +
+                    '<div class="col-span-2"><span class="text-xs text-slate-400 block">Motorista</span><span class="font-semibold text-slate-800">' + escHtml(m.motorista) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Transportadora</span><span class="font-medium text-slate-800">' + escHtml(m.transportadora) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Placa</span><span class="font-bold text-slate-800">' + escHtml(m.placa) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Setor / Operação</span><span class="font-medium text-slate-800">' + escHtml(m.setor) + ' · ' + escHtml(m.operacao) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Janela</span><span class="font-medium text-slate-800">' + formatDataBR(m.data) + ' às ' + escHtml(m.horario) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Dispositivo</span><span class="font-mono text-slate-800">' + escHtml(m.dispositivo) + '</span></div>' +
+                    '<div><span class="text-xs text-slate-400 block">Última atualização</span><span class="font-medium text-slate-800">' + monFormatarData(m.atualizadoEm) + '</span></div>' +
+                '</div>' +
+                '<hr class="border-slate-100">' +
+                '<div><label class="block text-sm font-medium text-slate-700 mb-1.5">Status do monitoramento</label>' +
+                    '<select id="mon-edit-status" class="w-full bg-white border border-slate-300 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 outline-none">' + opcoes + '</select></div>' +
+                '<div><label class="block text-sm font-medium text-slate-700 mb-1.5">Observação</label>' +
+                    '<textarea id="mon-edit-obs" rows="3" class="w-full border border-slate-300 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none" placeholder="Registre detalhes sobre este monitoramento..."></textarea></div>';
+
+            document.getElementById('mon-edit-obs').value = m.obs || '';
+            var modal = document.getElementById('modal-monitoramento');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function salvarMonitoramento() {
+            var m = monitoramentos.find(function (x) { return x.id === monEditId; });
+            if (!m) return;
+            m.status = document.getElementById('mon-edit-status').value;
+            m.obs = document.getElementById('mon-edit-obs').value.trim();
+            m.atualizadoEm = new Date().toISOString();
+            saveMonitoramento();
+            renderMonitoramento();
+            closeModal('modal-monitoramento');
+            showToast('Monitoramento ' + m.id + ' atualizado.');
+        }
+
+        function exportMonitoramentoCSV() {
+            var lista = monFiltrarBase().filter(function (m) { return monFiltro === 'TODOS' || m.status === monFiltro; });
+            if (lista.length === 0) {
+                showToast('Não há registros para exportar.');
+                return;
+            }
+            var headers = ['Protocolo', 'Monitoramento', 'Motorista', 'Placa', 'Transportadora', 'Setor', 'Operacao', 'Data', 'Horario', 'Dispositivo', 'Atualizado em', 'Observacao'];
+            var rows = lista.map(function (m) {
+                return [m.id, MON_STATUS[m.status].label, m.motorista, m.placa, m.transportadora, m.setor, m.operacao,
+                    formatDataBR(m.data), m.horario, m.dispositivo, monFormatarData(m.atualizadoEm), m.obs
+                ].map(function (v) { return '"' + String(v || '').replace(/"/g, '""') + '"'; }).join(';');
+            });
+            var blob = new Blob(['\uFEFF' + [headers.join(';')].concat(rows).join('\n')], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'monitoramento_mcassab_' + new Date().toISOString().split('T')[0] + '.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Monitoramento exportado em CSV!');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadMonitoramento();
+            renderMonitoramento();
+        });
 
         function showToast(msg) {
             var toast = document.getElementById('toast');
