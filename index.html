@@ -442,32 +442,6 @@
                                 <input type="text" id="input-nf" required placeholder="Ex: NF 104592 / Pedido 8841"
                                     class="w-full border border-slate-300 focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/15 rounded-xl px-3.5 py-2.5 text-sm outline-none">
                             </div>
-
-                            <!-- Foto da NF (somente Descarregamento) -->
-                            <div id="bloco-foto-nf" class="hidden sm:col-span-2 lg:col-span-3">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Foto da Nota Fiscal <span class="text-slate-400 font-normal">(opcional)</span></label>
-                                <input type="file" id="input-foto-nf" accept="image/*" capture="environment" class="hidden" onchange="handleFotoNF(this)">
-                                <div id="foto-nf-vazio">
-                                    <button type="button" onclick="document.getElementById('input-foto-nf').click()"
-                                        class="w-full flex items-center justify-center space-x-2.5 py-3.5 px-4 rounded-xl border-2 border-dashed border-slate-300 bg-white text-slate-600 font-medium text-sm hover:border-[#047857] hover:text-[#047857] hover:bg-slate-50 transition-all">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <span>Tirar foto da NF</span>
-                                    </button>
-                                </div>
-                                <div id="foto-nf-preview" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                    <img id="foto-nf-img" alt="Foto da Nota Fiscal" class="w-full max-h-64 object-contain rounded-lg bg-white">
-                                    <div class="flex items-center justify-end gap-2 mt-3">
-                                        <button type="button" onclick="document.getElementById('input-foto-nf').click()"
-                                            class="px-3.5 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-medium hover:bg-white transition-colors">Tirar outra</button>
-                                        <button type="button" onclick="removerFotoNF()"
-                                            class="px-3.5 py-2 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors">Remover</button>
-                                    </div>
-                                </div>
-                                <p id="foto-nf-erro" class="hidden text-xs text-red-600 font-medium mt-2"></p>
-                            </div>
                         </div>
                     </div>
 
@@ -790,7 +764,6 @@
     <script>
         var STORAGE_KEY = 'mcassab_portaria_agendamentos_v1';
         var selectedOperacao = '';
-        var fotoNFAtual = ''; // data URL (JPEG comprimido) da foto da NF, só em Descarregamento
         var selectedHorario = '';
         var currentFilterStatus = 'TODOS';
         var agendamentos = [];
@@ -896,7 +869,6 @@
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(agendamentos));
             } catch (e) {
                 console.error('Erro ao salvar localStorage:', e);
-                showToast('Armazenamento cheio: a foto da NF pode não ter sido salva.');
             }
             updateBadgeCount();
         }
@@ -941,66 +913,6 @@
             btnDescarregar.className = (op === 'Descarregar') ? activeStyles : inactiveStyles;
         }
 
-        // ---- Foto da NF (Descarregamento) ----
-        function atualizarBlocoFotoNF() {
-            var bloco = document.getElementById('bloco-foto-nf');
-            if (selectedOperacao === 'Descarregar') {
-                bloco.classList.remove('hidden');
-            } else {
-                bloco.classList.add('hidden');
-                removerFotoNF();
-            }
-        }
-
-        function handleFotoNF(input) {
-            var erro = document.getElementById('foto-nf-erro');
-            erro.classList.add('hidden');
-            var file = input.files && input.files[0];
-            if (!file) return;
-            if (!/^image\//.test(file.type)) {
-                erro.textContent = 'Selecione um arquivo de imagem.';
-                erro.classList.remove('hidden');
-                input.value = '';
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function (ev) {
-                var img = new Image();
-                img.onload = function () {
-                    // Redimensiona (lado maior 1280px) e comprime em JPEG para caber no armazenamento
-                    var max = 1280;
-                    var escala = Math.min(1, max / Math.max(img.width, img.height));
-                    var canvas = document.createElement('canvas');
-                    canvas.width = Math.round(img.width * escala);
-                    canvas.height = Math.round(img.height * escala);
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    fotoNFAtual = canvas.toDataURL('image/jpeg', 0.7);
-                    document.getElementById('foto-nf-img').src = fotoNFAtual;
-                    document.getElementById('foto-nf-vazio').classList.add('hidden');
-                    document.getElementById('foto-nf-preview').classList.remove('hidden');
-                    input.value = '';
-                };
-                img.onerror = function () {
-                    erro.textContent = 'Não foi possível ler a imagem. Tente novamente.';
-                    erro.classList.remove('hidden');
-                    input.value = '';
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removerFotoNF() {
-            fotoNFAtual = '';
-            var img = document.getElementById('foto-nf-img');
-            if (img) img.removeAttribute('src');
-            var inp = document.getElementById('input-foto-nf');
-            if (inp) inp.value = '';
-            document.getElementById('foto-nf-preview').classList.add('hidden');
-            document.getElementById('foto-nf-vazio').classList.remove('hidden');
-            document.getElementById('foto-nf-erro').classList.add('hidden');
-        }
-
         function tryGoToStep2() {
             if (!selectedOperacao) {
                 document.getElementById('op-error-msg').classList.remove('hidden');
@@ -1024,7 +936,6 @@
                 var setor = document.getElementById('select-setor').value;
                 document.getElementById('summary-setor').textContent = setor;
                 document.getElementById('summary-operacao').textContent = selectedOperacao;
-                atualizarBlocoFotoNF();
 
                 step1.classList.add('hidden');
                 step2.classList.remove('hidden');
@@ -1133,7 +1044,6 @@
                 placaCavalo: document.getElementById('input-placa-cavalo').value.toUpperCase().trim(),
                 placaCarreta: document.getElementById('input-placa-carreta').value.toUpperCase().trim() || '-',
                 nf: document.getElementById('input-nf').value.trim(),
-                nfFoto: (selectedOperacao === 'Descarregar') ? fotoNFAtual : '',
                 status: 'CONFIRMADO',
                 criadoEm: new Date().toLocaleString('pt-BR')
             };
@@ -1142,7 +1052,6 @@
             saveAgendamentos();
 
             document.getElementById('form-agendamento').reset();
-            removerFotoNF();
             setupDefaultDate();
             selectedHorario = '';
             selectedOperacao = '';
@@ -1305,7 +1214,6 @@
                     '<div><span class="text-xs text-slate-400 block">Placa Cavalo</span><span class="font-bold text-slate-800">' + item.placaCavalo + '</span></div>' +
                     '<div><span class="text-xs text-slate-400 block">Placa Carreta</span><span class="font-bold text-slate-800">' + item.placaCarreta + '</span></div>' +
                     '<div class="col-span-2"><span class="text-xs text-slate-400 block">Nota Fiscal / Pedido</span><span class="font-semibold text-slate-800">' + item.nf + '</span></div>' +
-                    (item.nfFoto ? '<div class="col-span-2"><span class="text-xs text-slate-400 block mb-1">Foto da NF</span><img src="' + item.nfFoto + '" alt="Foto da NF" class="w-full max-h-72 object-contain rounded-lg border border-slate-200 bg-slate-50"></div>' : '') +
                 '</div>' +
                 '<div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100">' +
                     'Apresente este protocolo na portaria MCASSAB com 15 minutos de antecedência. Emitido em ' + item.criadoEm + '.' +
