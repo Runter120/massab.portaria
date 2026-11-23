@@ -51,7 +51,8 @@ export const carregarJSON = (chave) => {
   try { return JSON.parse(localStorage.getItem(chave)); } catch { return null; }
 };
 export const salvarJSON = (chave, valor) => {
-  try { localStorage.setItem(chave, JSON.stringify(valor)); } catch (e) { console.error('Erro ao salvar:', e); }
+  try { localStorage.setItem(chave, JSON.stringify(valor)); return true; }
+  catch (e) { console.error('Erro ao salvar:', e); return false; }   // ex.: memória do navegador cheia
 };
 
 // ---------- Exportação ----------
