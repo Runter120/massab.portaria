@@ -7,7 +7,7 @@ const VAGAS = { '06:00': 3, '08:00': 4, '10:00': 3, '12:00': 3, '14:00': 3 };   
 // Quem está usando o sistema: perfil 'operador' | 'motorista' | null
 export const sessao = { perfil: null, motorista: null };
 
-const estado = { operacao: '', horario: '', filtro: 'TODOS', cancelando: null };
+const estado = { operacao: '', horario: '', foto: '', filtro: 'TODOS', cancelando: null };
 let agendamentos = [];
 
 const agora = () => new Date().toLocaleString('pt-BR');
@@ -26,7 +26,7 @@ const exemplos = () => [
   { id: 'MC-2026-8510', setor: 'CUPUAÇU', operacao: 'Descarregar', data: hojeISO(1), horario: '14:00', motorista: 'Roberto Carlos Mendes', cpf: '219.874.630-05', transportadora: 'RodoCargo Brasil', veiculo: 'Bitrem / Rodotrem', placaCavalo: 'RTY-7B19', placaCarreta: 'QWE-2C44', nf: 'NF 0091204 / Pedido 441', status: 'CONFIRMADO', criadoEm: agora() },
 ];
 
-const salvar = () => { salvarJSON(CHAVE, agendamentos); atualizarBadge(); };
+const salvar = () => { const ok = salvarJSON(CHAVE, agendamentos); atualizarBadge(); return ok; };
 
 export function carregarAgendamentos() {
   agendamentos = carregarJSON(CHAVE) ?? exemplos();
@@ -57,6 +57,10 @@ export function irParaEtapa(n) {
     if (!estado.operacao) { $('#op-error-msg').hidden = false; return; }
     $('#summary-setor').textContent = $('#select-setor').value;
     $('#summary-operacao').textContent = estado.operacao;
+    const descarregar = estado.operacao === 'Descarregar';
+    $('#campo-foto').hidden = !descarregar;       // foto só no descarregamento
+    $('#input-foto').required = descarregar;
+    if (!descarregar) limparFoto();
     renderHorarios();
   }
   $('#etapa-1').hidden = n !== 1;
@@ -64,6 +68,47 @@ export function irParaEtapa(n) {
   $('#pill-1').classList.toggle('is-ativo', n === 1);
   $('#pill-1').classList.toggle('is-feito', n === 2);
   $('#pill-2').classList.toggle('is-ativo', n === 2);
+}
+
+// ---------- Foto da carga (obrigatória só no descarregamento) ----------
+const limparFoto = () => {
+  estado.foto = '';
+  $('#input-foto').value = '';
+  $('#foto-preview').hidden = true;
+  $('#foto-error-msg').hidden = true;
+};
+
+// Reduz a foto (lado maior = 900px, JPEG) para caber no armazenamento do navegador.
+const redimensionar = (arquivo, max = 900, qualidade = 0.65) => new Promise((resolve, reject) => {
+  const url = URL.createObjectURL(arquivo);
+  const img = new Image();
+  img.onload = () => {
+    const escala = Math.min(1, max / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * escala);
+    canvas.height = Math.round(img.height * escala);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    resolve(canvas.toDataURL('image/jpeg', qualidade));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem inválida')); };
+  img.src = url;
+});
+
+export async function escolherFoto(evento) {
+  const arquivo = evento.target.files[0];
+  estado.foto = '';
+  $('#foto-preview').hidden = true;
+  if (!arquivo) return;
+  try {
+    estado.foto = await redimensionar(arquivo);
+    $('#foto-preview').src = estado.foto;
+    $('#foto-preview').hidden = false;
+    $('#foto-error-msg').hidden = true;
+  } catch {
+    evento.target.value = '';
+    toast('Não foi possível ler essa imagem. Tente outra foto.');
+  }
 }
 
 // ---------- Etapa 2: data e horário ----------
@@ -116,6 +161,9 @@ export function confirmar(evento) {
     return null;
   }
 
+  const descarregar = estado.operacao === 'Descarregar';
+  if (descarregar && !estado.foto) { $('#foto-error-msg').hidden = false; return null; }
+
   const valor = (seletor) => $(seletor).value.trim();
   const novo = {
     id: `MC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -129,13 +177,20 @@ export function confirmar(evento) {
     placaCavalo: valor('#input-placa-cavalo').toUpperCase(),
     placaCarreta: valor('#input-placa-carreta').toUpperCase() || '-',
     nf: valor('#input-nf'),
+    foto: descarregar ? estado.foto : '',
     status: 'CONFIRMADO',
     criadoEm: agora(),
   };
 
   agendamentos.unshift(novo);
-  salvar();
+  if (!salvar()) {   // memória do navegador cheia (fotos ocupam espaço)
+    agendamentos.shift();
+    atualizarBadge();
+    toast('Memória do navegador cheia. Cancele/remova agendamentos antigos e tente de novo.');
+    return null;
+  }
   $('#form-agendamento').reset();
+  limparFoto();
   definirDataPadrao();
   estado.horario = '';
   escolherOperacao('');
@@ -204,6 +259,7 @@ export function abrirComprovante(id) {
       ${campo('Transportadora', a.transportadora)}${campo('Tipo de Veículo', a.veiculo)}
       ${campo('Placa Cavalo', a.placaCavalo)}${campo('Placa Carreta', a.placaCarreta)}
       ${campo('Nota Fiscal / Pedido', a.nf, 'dado--largo')}
+      ${a.foto ? `<div class="dado dado--largo"><small>Foto da carga</small><img class="foto-comprovante" src="${esc(a.foto)}" alt="Foto da carga anexada"></div>` : ''}
     </div>
     <p class="nota">Apresente este protocolo na portaria MCASSAB com 15 minutos de antecedência. Emitido em ${esc(a.criadoEm)}.</p>`;
   abrir('modal-comprovante');
