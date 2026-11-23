@@ -127,6 +127,14 @@ select.input {
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") no-repeat right 0.875rem center / 1rem;
 }
 textarea.input { resize: none; }
+.input::file-selector-button {
+  margin-right: 0.75rem; padding: 0.375rem 0.75rem; border: 0; border-radius: 0.5rem;
+  background: var(--marca-clara); color: var(--marca); font-weight: 600; cursor: pointer;
+}
+.foto-preview, .foto-comprovante {
+  display: block; width: 100%; max-height: 16rem; margin-top: 0.75rem; object-fit: contain;
+  background: var(--c50); border: 1px solid var(--c200); border-radius: var(--raio);
+}
 .input--placa { text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
 
 .erro { margin-top: 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--perigo); }
