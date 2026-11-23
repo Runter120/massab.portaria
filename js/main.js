@@ -95,6 +95,7 @@ document.addEventListener('click', (evento) => {
 $('#form-login').addEventListener('submit', entrar);
 $('#form-agendamento').addEventListener('submit', confirmarAgendamento);
 $('#input-data').addEventListener('change', ag.renderHorarios);
+$('#input-foto').addEventListener('change', ag.escolherFoto);
 $('#busca-agendamentos').addEventListener('input', ag.renderAgendamentos);
 $('#mon-busca').addEventListener('input', mon.buscar);
 $('#mon-filtro-setor').addEventListener('change', mon.buscar);
