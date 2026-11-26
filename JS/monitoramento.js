@@ -1,7 +1,10 @@
 // Monitoramento (somente operador): cards, tabela com filtros, paginação e detalhe.
-import { $, esc, campo, toast, abrir, fechar, hojeISO, formatDataBR, carregarJSON, salvarJSON, baixarCSV } from './utils.js';
+import { $, esc, campo, toast, abrir, fechar, formatDataBR, carregarJSON, salvarJSON, baixarCSV } from './utils.js';
+import { todosAgendamentos, aoMudarAgendamentos } from './agendamentos.js';
 
-const CHAVE = 'mcassab_portaria_monitoramento_v3';   // v3: lista de status mudou (os dados de exemplo são recriados)
+// v4: aqui ficam só os dados do monitoramento (status, dispositivo, observação). Quem aparece na lista vem dos agendamentos.
+const CHAVE = 'mcassab_portaria_monitoramento_v4';
+const STATUS_INICIAL = 'FLUXO_DEFINIDO';   // status de todo agendamento novo que chega ao monitoramento
 const POR_PAGINA = 8;
 
 // As cores de cada status ficam no CSS (classe .status-NOME).
@@ -41,41 +44,54 @@ function verificarMudancas({ apenasMemorizar = false } = {}) {
   });
 }
 
-// id, motorista, placa, transportadora, setor, operação, horário, dispositivo, status, minutos atrás, observação
-const EXEMPLOS = [
-  ['MC-2026-8492', 'Marcos Antônio Oliveira', 'FGH-4J21', 'TransLog Express Ltda', 'FIGUEIRA', 'Carregar', '10:00', 'TRK-0231', 'ENTRADA_LIBERADA', 6, ''],
-  ['MC-2026-8510', 'Roberto Carlos Mendes', 'RTY-7B19', 'RodoCargo Brasil', 'CUPUAÇU', 'Descarregar', '14:00', '—', 'FLUXO_DEFINIDO', 14, 'Doca 04 definida.'],
-  ['MC-2026-8523', 'Luciana Prado Ferreira', 'BRA-2E19', 'Prado Transportes', 'ARAUCARIA', 'Carregar', '06:00', 'TRK-0114', 'DOC_VALIDADA', 22, 'NF e CNH conferidas.'],
-  ['MC-2026-8527', 'José Ricardo Alves', 'QPD-5F83', 'Alves & Filhos Logística', 'IPÊ', 'Descarregar', '08:00', 'TRK-0087', 'ENTRADA_LIBERADA', 35, ''],
-  ['MC-2026-8531', 'Anderson Silva Rocha', 'LMN-3C47', 'RodoNorte Cargas', 'FARMA/NUTROR', 'Carregar', '12:00', '—', 'DOC_INVALIDADA', 41, 'CNH vencida.'],
-  ['MC-2026-8536', 'Paulo Henrique Souza', 'XYZ-8D02', 'TransLog Express Ltda', 'FIGUEIRA', 'Descarregar', '10:00', 'TRK-0302', 'JORNADA_REPROVADA', 55, 'Tempo de direção acima do permitido.'],
-  ['MC-2026-8540', 'Carlos Eduardo Lima', 'HJK-1A56', 'Lima Express', 'CUPUAÇU', 'Carregar', '14:00', 'TRK-0150', 'ENTRADA_LIBERADA', 63, ''],
-  ['MC-2026-8544', 'Fernanda Costa Dias', 'TUV-6G90', 'Costa Dias Transportes', 'ARAUCARIA', 'Descarregar', '14:00', '—', 'FLUXO_DEFINIDO', 78, 'Fluxo: portaria → balança → doca 02.'],
-  ['MC-2026-8549', 'Ricardo Gomes Neto', 'DEF-9H31', 'GN Logística', 'IPÊ', 'Carregar', '14:00', 'TRK-0066', 'DOC_VALIDADA', 90, ''],
-  ['MC-2026-8553', 'Marcelo Batista Reis', 'MNO-4J77', 'Reis Cargas Pesadas', 'FARMA/NUTROR', 'Descarregar', '06:00', 'TRK-0199', 'DOC_VALIDADA', 120, ''],
-  ['MC-2026-8558', 'Tiago Moreira Pinto', 'PQR-2K64', 'Pinto & Moreira', 'FIGUEIRA', 'Carregar', '08:00', '—', 'DOC_INVALIDADA', 150, 'NF divergente do pedido.'],
-  ['MC-2026-8562', 'Sandra Regina Lopes', 'STU-7L08', 'Lopes Transportes', 'CUPUAÇU', 'Descarregar', '12:00', 'TRK-0245', 'JORNADA_REPROVADA', 180, 'Descanso mínimo não cumprido.'],
-];
-
-const minutosAtras = (min) => new Date(Date.now() - min * 60000).toISOString();
 const dataHora = (iso) => {
   const d = new Date(iso);
   return isNaN(d) ? '' : d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
-const salvar = () => salvarJSON(CHAVE, estado.lista);
+
+// id → { status, dispositivo, obs, atualizadoEm }  (o que o operador controla no monitoramento)
+let ajustes = {};
+const salvar = () => salvarJSON(CHAVE, ajustes);
+let iniciado = false;
+
+// Monta a lista a partir dos agendamentos confirmados. Agendamento novo entra com o status inicial;
+// agendamento cancelado sai da lista.
+function sincronizar() {
+  let criou = false;
+  estado.lista = todosAgendamentos().filter((a) => a.status === 'CONFIRMADO').map((a) => {
+    if (!ajustes[a.id]) {
+      ajustes[a.id] = { status: STATUS_INICIAL, dispositivo: '—', obs: '', atualizadoEm: new Date().toISOString() };
+      criou = true;
+    }
+    const aj = ajustes[a.id];
+    return {
+      id: a.id, motorista: a.motorista, placa: a.placaCavalo, transportadora: a.transportadora,
+      setor: a.setor, operacao: a.operacao, data: a.data, horario: a.horario,
+      dispositivo: aj.dispositivo, status: aj.status, atualizadoEm: aj.atualizadoEm, obs: aj.obs,
+    };
+  });
+  if (criou) salvar();
+}
 
 export function carregarMonitoramento() {
-  estado.lista = carregarJSON(CHAVE) ?? EXEMPLOS.map(
-    ([id, motorista, placa, transportadora, setor, operacao, horario, dispositivo, status, min, obs]) =>
-      ({ id, motorista, placa, transportadora, setor, operacao, data: hojeISO(), horario, dispositivo, status, atualizadoEm: minutosAtras(min), obs }));
-  salvar();
+  ajustes = carregarJSON(CHAVE) ?? {};
+  sincronizar();
+  iniciado = true;
   verificarMudancas({ apenasMemorizar: true });   // primeira leitura: não alerta
 }
 
+// Chamado quando os agendamentos mudam (novo, cancelado, outra aba)
+aoMudarAgendamentos(() => {
+  if (!iniciado) return;
+  sincronizar();
+  verificarMudancas();   // protocolo novo só é memorizado, não alerta
+  renderMonitoramento();
+});
+
 // Relê os dados salvos (botão "Atualizar" ou alteração feita em outra aba) e alerta se algo mudou
 export function recarregar() {
-  const salvo = carregarJSON(CHAVE);
-  if (salvo) estado.lista = salvo;
+  ajustes = carregarJSON(CHAVE) ?? ajustes;
+  sincronizar();
   verificarMudancas();
   renderMonitoramento();
 }
@@ -193,8 +209,9 @@ export function abrirDetalhe(id) {
 export function salvarDetalhe() {
   const m = estado.lista.find((x) => x.id === estado.editando);
   if (!m) return;
-  Object.assign(m, { status: $('input[name="mon-status"]:checked').value, obs: $('#mon-edit-obs').value.trim(), atualizadoEm: new Date().toISOString() });
+  Object.assign(ajustes[m.id], { status: $('input[name="mon-status"]:checked').value, obs: $('#mon-edit-obs').value.trim(), atualizadoEm: new Date().toISOString() });
   salvar();
+  sincronizar();
   renderMonitoramento();
   fechar('modal-monitoramento');
   toast(`Monitoramento ${m.id} atualizado.`);

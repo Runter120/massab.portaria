@@ -10,6 +10,11 @@ export const sessao = { perfil: null, motorista: null };
 const estado = { operacao: '', horario: '', foto: '', filtro: 'TODOS', cancelando: null };
 let agendamentos = [];
 
+// Outras telas (Monitoramento, Pesagem) se registram aqui para serem avisadas a cada mudança nos agendamentos.
+const ouvintes = [];
+export const aoMudarAgendamentos = (funcao) => { ouvintes.push(funcao); };
+export const todosAgendamentos = () => agendamentos;   // lista completa, sem o filtro por perfil
+
 const agora = () => new Date().toLocaleString('pt-BR');
 const normalizar = (v) => String(v ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
 
@@ -26,7 +31,21 @@ const exemplos = () => [
   { id: 'MC-2026-8510', setor: 'CUPUAÇU', operacao: 'Descarregar', data: hojeISO(1), horario: '14:00', motorista: 'Roberto Carlos Mendes', cpf: '219.874.630-05', transportadora: 'RodoCargo Brasil', veiculo: 'Bitrem / Rodotrem', placaCavalo: 'RTY-7B19', placaCarreta: 'QWE-2C44', nf: 'NF 0091204 / Pedido 441', status: 'CONFIRMADO', criadoEm: agora() },
 ];
 
-const salvar = () => { const ok = salvarJSON(CHAVE, agendamentos); atualizarBadge(); return ok; };
+const salvar = () => {
+  const ok = salvarJSON(CHAVE, agendamentos);
+  atualizarBadge();
+  if (ok) ouvintes.forEach((f) => f());   // só avisa as outras telas se gravou de verdade
+  return ok;
+};
+
+// Alteração feita em outra aba do navegador: relê os dados e atualiza todas as telas
+window.addEventListener('storage', (e) => {
+  if (e.key !== CHAVE) return;
+  agendamentos = carregarJSON(CHAVE) ?? agendamentos;
+  atualizarBadge();
+  renderAgendamentos();
+  ouvintes.forEach((f) => f());
+});
 
 export function carregarAgendamentos() {
   agendamentos = carregarJSON(CHAVE) ?? exemplos();

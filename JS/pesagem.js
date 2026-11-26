@@ -2,7 +2,7 @@
 // As pesagens ficam gravadas dentro do próprio agendamento (campo "pesagens"), em agendamentos.js.
 import { $, esc, campo, toast, abrir, fechar, formatDataBR } from './utils.js';
 import {
-  sessao, agendamentosParaPesagem, buscarAgendamento, salvarPesagens,
+  sessao, agendamentosParaPesagem, buscarAgendamento, salvarPesagens, aoMudarAgendamentos,
   TIPOS_PESAGEM, calcularPesagem, numero, kg, diferencaKg, dataHora,
 } from './agendamentos.js';
 
@@ -47,6 +47,9 @@ export function renderPesagem() {
     : '<tr><td colspan="7" class="vazio-tabela">Nenhum agendamento encontrado para pesagem.</td></tr>';
   $('#pes-resumo').textContent = `${lista.length} ${lista.length === 1 ? 'veículo' : 'veículos'}`;
 }
+
+// Novo agendamento, cancelamento ou alteração em outra aba: a lista de pesagem se atualiza sozinha
+aoMudarAgendamentos(renderPesagem);
 
 // ---------- Modal "Controle de Pesagem" ----------
 export function validarFormulario() {
