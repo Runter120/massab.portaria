@@ -4,7 +4,7 @@ import { todosAgendamentos, aoMudarAgendamentos } from './agendamentos.js';
 
 // v4: aqui ficam só os dados do monitoramento (status, dispositivo, observação). Quem aparece na lista vem dos agendamentos.
 const CHAVE = 'mcassab_portaria_monitoramento_v4';
-const STATUS_INICIAL = 'FLUXO_DEFINIDO';   // status de todo agendamento novo que chega ao monitoramento
+const STATUS_INICIAL = 'PESAGEM';   // status de todo agendamento novo que chega ao monitoramento
 const POR_PAGINA = 8;
 
 // As cores de cada status ficam no CSS (classe .status-NOME).
